@@ -1,34 +1,4 @@
-/* File:     
- *     pth_mat_vect.c 
- *
- * Purpose:  
- *     Computes a parallel matrix-vector product.  Matrix
- *     is distributed by block rows.  Vectors are distributed by 
- *     blocks.
- *
- * Input:
- *     m, n: order of matrix
- *     A, x: the matrix and the vector to be multiplied
- *
- * Output:
- *     y: the product vector
- *
- * Compile:  gcc -g -Wall -o pth_mat_vect pth_mat_vect.c -lpthread
- * Usage:
- *     pth_mat_vect <thread_count>
- *
- * Notes:  
- *     1.  Local storage for A, x, y is dynamically allocated.
- *     2.  Number of threads (thread_count) should evenly divide both 
- *         m and n.  The program doesn't check for this.
- *     3.  We use a 1-dimensional array for A and compute subscripts
- *         using the formula A[i][j] = A[i*n + j]
- *     4.  Distribution of A, x, and y is logical:  all three are 
- *         globally shared.
- *
- * IPP:    Section 4.3 (pp. 159 and ff.).  Also Section 4.10 (pp. 191 and 
- *         ff.)
- */
+
 
 #include <stdio.h>
 #include <stdlib.h>
