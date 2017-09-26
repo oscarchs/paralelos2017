@@ -1,119 +1,88 @@
- #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <algorithm>
-#include <chrono>
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <mpi.h>
 
 using namespace std;
 
-const int MAX = 600;
+int main(int argc, char **argv) {
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+    int numeroProcesadores,
+            idProceso;
+    long **A,
+            *x,
+            *y,
+            *miFila;
 
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &numeroProcesadores);
+    MPI_Comm_rank(MPI_COMM_WORLD, &idProceso);
 
-void print_matrix(double matrix[][MAX]){
-    for(int i=0; i<MAX; i++){
-        for(int j=0; j<MAX; j++){
-            cout << matrix[i][j] << '\t';
+    A = new long *[numeroProcesadores];
+    x = new long [numeroProcesadores];
+    if (idProceso == 0) {
+        A[0] = new long [numeroProcesadores * numeroProcesadores];
+        for (unsigned int i = 1; i < numeroProcesadores; i++) {
+            A[i] = A[i - 1] + numeroProcesadores;
         }
-        cout << endl;
-    }
-}
+        y = new long [numeroProcesadores];
 
-void print_array(double array[]){
-    for(int i=0; i<MAX; i++){
-        cout << array[i] << '\t';
-    }
-}
-
-void cache_matrix_acces_1(){
-    double A[MAX][MAX], x[MAX], y[MAX];
-    srand (time(NULL));
-    for(int i=0; i<MAX; i++){
-        for(int j=0; j<MAX; j++){
-            A[i][j] = rand() % 1000 + 1;
-        }
-        x[i] = rand() % 1000 + 1;
-        y[i] = 0;
-    }
-
-    // First loop
-    auto start = std::chrono::high_resolution_clock::now();
-    for(int i=0; i<MAX; i++){
-        for(int j=0; j<MAX; j++){
-            y[i] = A[i][j]*x[j];
-        }
-    }
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = finish - start;
-    std::cout << "First Loop:" << elapsed.count() << " s\n";
-
-    cout << endl << endl;
-
-    std::fill(y,y+MAX, 0);
-
-    auto start_1 = std::chrono::high_resolution_clock::now();
-    for(int j=0; j<MAX; j++){
-        for(int i=0; i<MAX; i++){
-            y[i] = A[j][i]*x[j];
-        }
-    }
-    auto finish_1 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_1 = finish_1 - start_1;
-    std::cout << "Second Loop: " << elapsed_1.count() << " s\n";
-
-}
-
-void matrix_multiplication_3loops(){
-    double A[MAX][MAX], B[MAX][MAX], C[MAX][MAX], D[MAX][MAX];
-    srand (time(NULL));
-    for(int i=0; i<MAX; i++){
-        for(int j=0; j<MAX; j++){
-            A[i][j] = rand() % 1000 + 1;
-            B[i][j] = rand() % 1000 + 1;
-        }
-    }
-
-    // classic 3 loop
-    auto start_1 = std::chrono::high_resolution_clock::now();
-    for(int i=0; i<MAX; i++){
-        for(int j=0; j<MAX; j++){
-            C[i][j] = 0;
-            for(int k=0; k<MAX; k++)
-                C[i][j] += A[i][k] * B[k][j];
-        }
-    }
-    auto finish_1 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_1 = finish_1 - start_1;
-    std::cout << "3 loop matrix multiplication " << elapsed_1.count() << " s\n";
-
-    int blockSize=2;
-    int n = MAX;
-    //six loop
-    auto start = std::chrono::high_resolution_clock::now();
-    for (int ii = 0; ii<n; ii+=blockSize) {
-        for (int jj = 0; jj<n; jj+=blockSize) {
-            for (int kk = 0; kk<n; kk+=blockSize) {
-                for (int i = ii; i<MIN(ii+blockSize,n); i++) {
-                    for (int j = jj; j<MIN(jj+blockSize, n); j++) {
-                        for (int k = kk; k<MIN(kk+blockSize, n); k++) {
-                            D[i][j] += A[i][k] * B[k][j];
-                        }
-                    }
-                }
+        srand(time(0));
+        for (unsigned int i = 0; i < numeroProcesadores; i++) {
+            for (unsigned int j = 0; j < numeroProcesadores; j++) {
+                if (j == 0) cout << "[";
+                A[i][j] = rand() % 1000;
+                cout << A[i][j];
+                if (j == numeroProcesadores - 1) cout << "]";
+                else cout << "  ";
             }
+            x[i] = rand() % 100;
+            cout << "\t  [" << x[i] << "]" << endl;
         }
+        cout << "\n";
     }
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = finish - start;
-    std::cout << "6 loop matrix multiplication " << elapsed.count() << " s\n";
 
-}
+    miFila = new long [numeroProcesadores];
 
-int main(int argc, char *argv[])
-{
-    cache_matrix_acces_1();
-    cout << "Hello World!" << endl;
-    return 0;
+    MPI_Scatter(A[0],
+            numeroProcesadores,
+            MPI_LONG,
+            miFila,
+            numeroProcesadores,
+            MPI_LONG,
+            0,
+            MPI_COMM_WORLD);
+    // Compartimos el vector entre todas los procesos
+    MPI_Bcast(x,
+            numeroProcesadores,
+            MPI_LONG,
+            0,
+            MPI_COMM_WORLD);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    long subFinal = 0;
+    for (unsigned int i = 0; i < numeroProcesadores; i++) {
+        subFinal += miFila[i] * x[i];
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Gather(&subFinal,
+            1,
+            MPI_LONG,
+            y,
+            1,
+            MPI_LONG,
+            0,
+            MPI_COMM_WORLD);
+    MPI_Finalize();
+
+    if (idProceso == 0) {
+        for (unsigned int i = 0; i < numeroProcesadores; i++) {
+            cout << "\t" << y[i] << "\t" << endl;
+        }
+        delete [] y;
+        delete [] A[0];
+    }
+    delete [] x;
+    delete [] A;
+    delete [] miFila;
 }
