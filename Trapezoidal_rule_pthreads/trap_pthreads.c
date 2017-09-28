@@ -34,8 +34,6 @@ int main(int argc, char** argv) {
          pthread_create(&thread_handles[i], NULL, Thread_work,
                (void*) i);
     }
-
-    /* Wait for threads to complete. */
     for (i = 0; i < thread_count; i++) {
         pthread_join(thread_handles[i], NULL);
     }
@@ -61,11 +59,8 @@ void * Thread_work(void* rank) {
     local_b = local_a + local_n*h;
 
     my_int = Trap(local_a, local_b, local_n, h);
-
-    /* Block thread until mutex is available. */
     pthread_mutex_lock(&mutex);
     total += my_int;
-    /* Make mutex available to another thread */
     pthread_mutex_unlock(&mutex);
 
     return NULL;
@@ -97,4 +92,4 @@ double f(double x) {
 
     return_val = x*x;
     return return_val;
-} /* f */
+} 
