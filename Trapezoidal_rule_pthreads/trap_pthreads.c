@@ -2,15 +2,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-/* The global variables are shared among all the threads. */
-/* All of them except total and mutex are set in main.    */
 int     thread_count;
 double  a, b, h;
 int     n, local_n;
-
-/* A mutex is a type of lock.  It can be used to provide     */
-/* mutual exclusion for a critical region, in our case, when */
-/* a thread's calculation is added into total.               */
 pthread_mutex_t   mutex;
 double  total;
 
@@ -34,16 +28,8 @@ int main(int argc, char** argv) {
     scanf("%lf %lf %d", &a, &b, &n);
     h = (b-a)/n;
     local_n = n/thread_count;
-
-    /* Allocate storage for thread handles.  Thread_count better */
-    /* be positive . . .                                         */
     thread_handles = malloc (thread_count*sizeof(pthread_t));
-
-    /* Initialize the mutex */
     pthread_mutex_init(&mutex, NULL);
-
-    /* Start the threads.  Next to last argument is function in */
-    /* which thread runs.  Final argument is thread's rank      */
     for (i = 0; i < thread_count; i++) {
          pthread_create(&thread_handles[i], NULL, Thread_work,
                (void*) i);
@@ -71,8 +57,6 @@ void * Thread_work(void* rank) {
     double      my_int;    /* Integral over my interval */
     long        my_rank = (long) rank;
 
-    /* Length of each process' interval of integration = */
-    /* local_n*h.  So my interval starts at:             */
     local_a = a + my_rank*local_n*h;
     local_b = local_a + local_n*h;
 
