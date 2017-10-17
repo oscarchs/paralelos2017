@@ -7,7 +7,7 @@ using namespace std;
 
 void matrix_vector(int **matrix,int *vector,int m,int n){
     int result[n];
-    int thread_count = 10;
+    int thread_count = 4;
     int i,j;
 #pragma omp parallel for num_threads(thread_count) default(none) private(i, j) shared(matrix, vector, result, m, n)
     for(i=0; i<m; i++){
@@ -18,22 +18,24 @@ void matrix_vector(int **matrix,int *vector,int m,int n){
 }
 
 int main(){
-    int row=10000,column=10000;
+    int m=100,n=1000000;
 	srand(time(NULL));
-	int **a = new int*[row];
-	for(int i=0; i < row; i++) {a[i] = new int[column];};
-	for(int i=0; i < row; i++){
-		for(int j=0; j < column; j++)
-			a[i][j] = rand() % 1000;
-	}
 
-    int *b = new int[row];
-    for(int i=0; i < row; i++){
-			b[i] = rand() % 1000;
+	int **matrix= new int*[m];
+    for(int i=0; i<m; i++){
+        matrix[i] = new int[n];
+        for(int j=0; j<n; j++){
+            matrix[i][j] = rand() % 999;
+        }
+    }
+
+    int *vector = new int[n];
+    for(int i=0; i < n; i++){
+			vector[i] = rand() % 999;
 	}
 
     double start = omp_get_wtime();
-    matrix_vector(a,b,row,column);
+    matrix_vector(matrix,vector,m,n);
 	printf("Time: \t %f \n", omp_get_wtime()-start);
 
 
