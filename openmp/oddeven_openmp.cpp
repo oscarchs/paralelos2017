@@ -64,7 +64,7 @@ void oddEvenSort1(int a[],int n){
 
 
 int main(){
-	int size = 100000;
+	int size = 20000;
 	int lista[size];
 	for(int i =0; i < size ; i++){
 		srand(time(NULL));
