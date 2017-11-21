@@ -1,8 +1,3 @@
-/**
-*Developed By Karan Bhagat
-*March 2017
-**/
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,7 +6,7 @@ __global__ void matrix_mul_kernel(int* a, int* b, int* c, int a_rows, int a_colu
 {
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
-	
+
 	//check if thread directly maps to the dimensions of resulting matrix
 	if (row < a_rows && col < b_columns)
 	{
@@ -35,18 +30,18 @@ int main(int argc, char **argv)
 		printf("Usage : ./matrix_mul_tiling <fileA> <fileB> <A_rows> <A_columns> <B_columns>");
 		exit(1);
 	}
-	
+
 	char* fileA_name = argv[1];//matrix A filename
 	char* fileB_name = argv[2];//matrix B filename
 
 	// a_columns can also be perceived as b_rows
 	int a_rows, a_columns, b_columns;
-	
+
 	//read matrix A and B's dimensions
 	sscanf(argv[3], "%d", &a_rows);
 	sscanf(argv[4], "%d", &a_columns);
 	sscanf(argv[5], "%d", &b_columns);
-	
+
 	FILE *fileA = fopen(fileA_name, "r");
 	FILE *fileB = fopen(fileB_name, "r");
 
@@ -57,21 +52,21 @@ int main(int argc, char **argv)
 	int* d_mat_a;
 	int* d_mat_b;
 	int* d_mat_c;
-	
+
 	//allocate memory for host matrices
 	mat_a = (int*)malloc(a_rows * a_columns * sizeof(int));
 	mat_b = (int*)malloc(a_columns * b_columns * sizeof(int));
 	mat_c = (int*)malloc(a_rows * b_columns * sizeof(int));
-	
+
 	int i, j;
-	
+
 	build_matrix(fileA, mat_a, a_rows, a_columns);
 	build_matrix(fileB, mat_b, a_columns, b_columns);
-	
+
 	//declare dimensions for the grid and block
 	dim3 dimBlock(2,2);
 	dim3 dimGrid((int)ceil(b_columns/2),(int)ceil(a_rows/2));
-	
+
 	const size_t size_a = a_rows * a_columns * sizeof(int);
 	const size_t size_b = a_columns * b_columns * sizeof(int);
 	const size_t size_c = a_rows * b_columns * sizeof(int);
@@ -90,7 +85,7 @@ int main(int argc, char **argv)
 
 	//copy the compute matrix C from device to host
 	cudaMemcpy(mat_c, d_mat_c, size_c, cudaMemcpyDeviceToHost);
-	
+
 	//free cuda memory
 	cudaFree(d_mat_a);
 	cudaFree(d_mat_b);
@@ -113,7 +108,7 @@ void build_matrix(FILE *file, int* mat, int rows, int columns)
 	int i, j;
 	for (i = 0; i < rows; i++)
 	{
-		for (j = 0; j < columns; j++) 
+		for (j = 0; j < columns; j++)
 		{
 			fscanf(file, "%d", &mat[i * columns + j]);
 		}
