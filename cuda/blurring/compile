@@ -1,0 +1,1 @@
+nvcc imageblur.cu -I /usr/local/include/opencv -lopencv_core -lopencv_imgcodecs -lcudart -L /usr/local/lib/

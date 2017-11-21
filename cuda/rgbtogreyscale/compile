@@ -1,0 +1,1 @@
+nvcc rgb_to_greyscale.cu -I /usr/local/include/opencv -lopencv_core -lopencv_imgproc -lcudart -lopencv_imgcodecs -L /usr/local/lib/
